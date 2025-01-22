@@ -1,20 +1,36 @@
-﻿// top-exam.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
-
+﻿#include <boost/asio.hpp>
 #include <iostream>
+#include <string>
 
-int main()
-{
-    std::cout << "Hello World!\n";
+#define PORT 60
+
+using boost::asio::ip::tcp;
+using namespace std;
+
+int main() {
+    try {
+        boost::asio::io_context io_context;
+
+        tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), PORT));
+        cout << "Server is running on port " << PORT << endl;
+
+        while (true) {
+            tcp::socket socket(io_context);
+            acceptor.accept(socket);
+
+            char buffer[1024];
+            size_t length = socket.read_some(boost::asio::buffer(buffer));
+            string received_data(buffer, length);
+
+            cout << "Received from client: " << received_data << endl;
+
+            string response = "Hi,client!" + received_data;
+            boost::asio::write(socket, boost::asio::buffer(response));
+        }
+    }
+    catch (exception& e) {
+        cerr << "Error: " << e.what() << std::endl;
+    }
+
+    return 0;
 }
-
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
-
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
