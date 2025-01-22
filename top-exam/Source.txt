@@ -1,0 +1,73 @@
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <nlohmann/json.hpp>
+#include <boost/asio.hpp>
+
+using json = nlohmann::json;
+using boost::asio::ip::tcp;
+
+struct Question {
+    int id;
+    std::string question_text;
+    std::vector<std::string> answers;  // Ответы от клиентов
+};
+
+std::vector<Question> questions;  // Хранение вопросов
+
+void handle_client(tcp::socket socket) {
+    try {
+        boost::asio::streambuf buffer;
+        boost::asio::read_until(socket, buffer, "\n");
+
+        std::istream stream(&buffer);
+        std::string data;
+        std::getline(stream, data);
+
+        json received_json = json::parse(data);
+
+        std::string name = received_json["name"];
+        std::string answer = received_json["answer"];
+
+        // Найти текущий вопрос, обновить его ответы
+        for (auto& question : questions) {
+            if (question.id == received_json["question_id"]) {
+                question.answers.push_back(answer);
+                break;
+            }
+        }
+
+        // Отправка нового вопроса, если текущий полностью обработан
+        for (auto& question : questions) {
+            if (question.answers.size() == 2) {  // Например, если требуется 2 ответа
+                json response = {{"question_id", question.id},
+                                 {"question_text", question.question_text}};
+                std::string response_str = response.dump();
+                boost::asio::write(socket, boost::asio::buffer(response_str + "\n"));
+                break;
+            }
+        }
+    } catch (std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+int main() {
+    try {
+        boost::asio::io_service io_service;
+        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 12345));
+
+        questions.push_back({1, "Что вы думаете о современной экономике?"});
+        questions.push_back({2, "Как вы относитесь к изменениям в законодательстве?"});
+
+        while (true) {
+            tcp::socket socket(io_service);
+            acceptor.accept(socket);
+            std::thread(handle_client, std::move(socket)).detach();
+        }
+    } catch (std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
+    return 0;
+}
