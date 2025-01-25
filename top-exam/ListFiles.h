@@ -8,4 +8,5 @@ namespace fs = std::filesystem;
 class FileLister {
 public:
     static vector<string> getFiles(const string& path);
+    static vector<string> getFiles(const string& path,char c);
 };

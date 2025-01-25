@@ -1,56 +1,128 @@
 #include "Server.h"
-#include <iostream>
-#include <algorithm>
-#include <memory>
-#include <thread>
+#define PORT 60
 
-#define PORT 80
-Server::Server() : acceptor(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), PORT)) {}
+void Server::accept_connections(tcp::acceptor& acceptor)
+{
+    while (true) {
+        tcp::socket socket(io_context_);
 
-void Server::start() {
-    std::thread serverThread(&Server::acceptConnections, this);  
-    serverThread.detach(); 
-
-    io_context.run();  
-}
-
-void Server::acceptConnections() {
-    auto new_socket = new boost::asio::ip::tcp::socket(io_context);
-    acceptor.async_accept(*new_socket, [this, new_socket](const boost::system::error_code& error) {
-        if (!error) {
-            Client client(std::move(*new_socket));
-            {
-                std::lock_guard<std::mutex> lock(clients_mutex);
-                clients.push_back(client);
-                std::cout << "Подключение успешно!" << std::endl;
-            }
-            std::thread(&Server::handleClient, this, client).detach(); 
-        }
-        acceptConnections();  
-        });
-}
-
-void Server::handleClient(Client& client) {
-    try {
-        while (true) {
-            std::string message = client.readFromClient();
-            if (!message.empty()) {
-                std::cout << message << std::endl;
-            }           
-        }
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Client disconnected: " << e.what() << std::endl;
+        acceptor.accept(socket);
+        //std::thread(&Server::handle_clients, this, std::move(socket)).detach();
         {
-            std::lock_guard<std::mutex> lock(clients_mutex);
-            clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
+            // Защищаем доступ к вектору клиентов
+            std::lock_guard<std::mutex> lock(client_mutex_);
+            clients_.emplace_back(std::move(socket));
+        }
+        std::cout << endl << SUCCESSFULLY_COLOR << "Новое подключение." << RESET_COLOR << " Всего клиентов : " << RESET_COLOR << clients_.size() << std::endl;
+    }
+}
+void Server::start()
+{
+    try {
+        tcp::acceptor acceptor(io_context_, tcp::endpoint(tcp::v4(), PORT));
+
+        std::cout << SUCCESSFULLY_COLOR << "Сервер запущен на порте " << PORT << RESET_COLOR << endl;
+        accept_connections(acceptor);
+
+    }
+    catch (std::exception& e) {
+        std::cerr << WARNING_COLOR << "Ошибка сервера: " << e.what() << RESET_COLOR << std::endl;
+    }
+}
+void Server::sendMessageToAll(const std::string& msg)
+{
+    std::lock_guard<std::mutex> lock(client_mutex_);
+
+    for (auto it = clients_.begin(); it != clients_.end(); )
+    {
+        try
+        {
+            boost::asio::write(it->getSocket(), boost::asio::buffer(msg + "\n"));
+            ++it;
+        }
+        catch (const std::exception& e)
+        {
+            std::cout << WARNING_COLOR << "Ошибка при отправке сообщения. Клиент отключен: " << e.what() << RESET_COLOR << std::endl;
+            it = clients_.erase(it);
         }
     }
 }
-
-void Server::sendToAllClients(const std::string& message) {
-    std::lock_guard<std::mutex> lock(clients_mutex);
-    for (auto& client : clients) {
-        client.sendMessageToClient(message);
+void Server::setQuestion(const std::string& quest)
+{
+    question = quest;
+    for (auto& it : clients_)
+    {
+        it.question = quest;
     }
+}
+std::unordered_map<std::string, int> mostResponse(vector<Client>& clients)
+{
+    cout << "==================================================================" << endl;
+    std::unordered_map<std::string, int> responseCount;
+
+    for (int i = 0;i < clients.size();i++) {
+        responseCount[clients[i].getResponse()]++;
+    }
+
+    int maxCount = 0;
+    for (const auto& pair : responseCount) {
+        if (pair.second > maxCount) {
+            maxCount = pair.second;
+        }
+    }
+
+    std::vector<std::string> mostPopularResponses;
+    for (const auto& pair : responseCount) {
+        if (pair.second == maxCount) {
+            mostPopularResponses.push_back(pair.first);
+        }
+    }
+
+    std::cout << "Самые популярные ответы (встречаются " << maxCount << " раз):\n";
+    for (const auto& response : mostPopularResponses) {
+        std::cout << "- " << response << "\n";
+    }
+    return responseCount;
+}
+void Server::getResponse()
+{
+    vector<std::thread> threads;
+
+    for (auto& client : clients_) {
+        threads.push_back(std::thread(&Client::acceptResponse, &client));
+    }
+
+    for (auto& t : threads) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+    json j;
+    std::unordered_map<std::string, int> _mostResponse = mostResponse(clients_);
+
+    j["clients"] = json::array();
+    for (auto& client : clients_) {
+        json clientJson = client.getJson();
+        j["clients"].push_back({
+            {"name", clientJson["name"]},
+            {"response", clientJson["message"]}
+            });
+
+    }
+    j["question"] = this->question;
+    j["mostResponse"] = json::array();
+    for (const auto& response : _mostResponse)
+    {
+        j["mostResponse"].push_back({
+                    {"response", response.first},
+                    {"count", response.second}
+            });
+    }
+    string str = j.dump(1);
+    FileSystem fs;
+    FileLister fl;
+    vector<string> files = fl.getFiles("general_responses/");
+    fs.openFile("general_responses/" + to_string(files.size()) +".json", "w+");
+    fs.writeFile(str);
+    fs.closeFile();
 }

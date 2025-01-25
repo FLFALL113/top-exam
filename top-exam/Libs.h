@@ -1,16 +1,13 @@
-#pragma once
 #include <boost/asio.hpp>
 #include <iostream>
-#include <string>
 #include <thread>
-#include <nlohmann/json.hpp>
-#include <cstdlib>
-#include "FileSystem.h"
-#include "ListFiles.h"
+#include <vector>
+#include <memory>
 #include <mutex>
-#define PORT 60
+
+#define WARNING_COLOR "\033[31m"
+#define SUCCESSFULLY_COLOR "\033[32m"
+#define RESET_COLOR "\033[0m"
 
 using boost::asio::ip::tcp;
 using namespace std;
-using json = nlohmann::json;
-using boost::asio::ip::tcp;

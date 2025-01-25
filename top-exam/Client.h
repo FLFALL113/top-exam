@@ -1,17 +1,25 @@
 #pragma once
-#include <boost/asio.hpp>
-#include <string>
+#include "Libs.h"
+#include <nlohmann/json.hpp>
 
-class Client {
+using json = nlohmann::json;
+
+class Client
+{
 public:
-    explicit Client(boost::asio::ip::tcp::socket s);
-    std::string readFromClient();
-    void sendMessageToClient(const std::string& message);
-    bool operator==(const Client& other) const {
-        // Ќапример, сравниваем по адресу сокета
-        return socket.remote_endpoint() == other.socket.remote_endpoint();
-    }
+    Client(tcp::socket s);
+    void acceptResponse();
 
+
+    tcp::socket& getSocket();
+    string getResponse();
+    json getJson();
+
+    string question;
 private:
-    boost::asio::ip::tcp::socket socket;
+    void saveResponse();
+    boost::asio::ip::tcp::socket socket_;
+    json json_;
+    string response_;
+    
 };

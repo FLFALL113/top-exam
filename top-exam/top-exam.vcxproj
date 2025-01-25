@@ -128,14 +128,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="ListFiles.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="top-exam.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Client.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Libs.h" />
     <ClInclude Include="ListFiles.h" />
+    <ClInclude Include="Server.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Source.txt" />
