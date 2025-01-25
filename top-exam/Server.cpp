@@ -70,7 +70,10 @@ std::unordered_map<std::string, int> mostResponse(vector<Client>& clients)
             maxCount = pair.second;
         }
     }
-
+    for (const auto& it : responseCount)
+    {
+        cout << "- " << it.second << " - " << (responseCount.size() / it.second)*25 << "%" << endl;
+    }
     std::vector<std::string> mostPopularResponses;
     for (const auto& pair : responseCount) {
         if (pair.second == maxCount) {

@@ -1,0 +1,23 @@
+{
+ "clients": [
+  {
+   "name": "asdasd",
+   "response": "+"
+  },
+  {
+   "name": "fsdfsdf",
+   "response": "-"
+  }
+ ],
+ "mostResponse": [
+  {
+   "count": 1,
+   "response": "+"
+  },
+  {
+   "count": 1,
+   "response": "-"
+  }
+ ],
+ "question": "dsad"
+}

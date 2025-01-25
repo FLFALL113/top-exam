@@ -1,0 +1,27 @@
+{
+ "clients": [
+  {
+   "name": "sadas",
+   "response": "-"
+  },
+  {
+   "name": "dasdas",
+   "response": "+"
+  },
+  {
+   "name": "dsadasd",
+   "response": "-"
+  }
+ ],
+ "mostResponse": [
+  {
+   "count": 2,
+   "response": "-"
+  },
+  {
+   "count": 1,
+   "response": "+"
+  }
+ ],
+ "question": "+ or -"
+}
