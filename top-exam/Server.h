@@ -7,14 +7,15 @@
 class Server {
 private:
     boost::asio::io_context io_context_;
-    std::vector<Client> clients_;
+    
     std::mutex client_mutex_;
     void accept_connections(tcp::acceptor& acceptor);
-    string question;
 public:
+    std::vector<Client> clients_;
+    int countClient = 0;
     Server() {};
     void start();
     void sendMessageToAll(const std::string& msg);
-    void getResponse();
-    void setQuestion(const std::string& quest);
+    std::string getResponse(Client & client);
+    void sendMessage(Client& client, const string& msg);
 };

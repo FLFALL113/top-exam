@@ -8,7 +8,7 @@ class Client
 {
 public:
     Client(tcp::socket s);
-    void acceptResponse();
+    string acceptResponse();
 
 
     tcp::socket& getSocket();

@@ -18,58 +18,34 @@ using json = nlohmann::json;
 using boost::asio::ip::tcp;
 using namespace std;
 
-
-void menu(Server& server)
+void game(Server& server)
 {
-    int input;
-    string prefix = "_quest_";
-    string quest;
+    
+    while (server.countClient != 2)
+    {
+    }
+    string field = "";
+    field += "\n | | \n | | \n | | ";
+    server.sendMessageToAll(field);
+    int queue = 0;
     while (true)
     {
-        cout << RESET_COLOR << endl << "1 - Начать голосование\n2 - Закончить работу\n";
-        cin >> input;
-        while (std::cin.fail()) {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << WARNING_COLOR << "Неправильный ввод. Введите ЧИСЛО: " << RESET_COLOR << endl;;
-            std::cin >> input;
-        }
-        
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-        switch (input)
-        {
-        case 1:
-            cout << "Введите вопрос для голосования: ";  
-            getline(cin, quest);
-            cout << "==================================================================" << endl;
-            server.setQuestion(quest);
-            server.sendMessageToAll(prefix + quest);
-            server.getResponse();
-            break;
-        case 2:
-            exit(0);
-            break;
-        default:
-            break;
-        }
+        server.sendMessage(server.clients_[queue], "_Ваш ход: ");
+        string response = server.getResponse(server.clients_[queue]);
+        queue = queue == 0 ? 1 : 0;
+        cout << response;
     }
+    
 }
-
 int main()
 {
     setlocale(LC_ALL, "ru");
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     Server server;
-
-    std::thread menuThread(menu, std::ref(server));
-
+    thread t(game,ref(server));
     server.start();
-
-    if (menuThread.joinable()) {
-        menuThread.join();
-    }
+    while (true);
 
     return 0;
 }

@@ -2,8 +2,8 @@
 #include "FileSystem.h"
 #include "ListFiles.h"
 
-Client::Client(tcp::socket s) : socket_(std::move(s)) { boost::asio::write(this->socket_, boost::asio::buffer("Ожидайте вопроса.")); }
-void Client::acceptResponse()
+Client::Client(tcp::socket s) : socket_(std::move(s)) { }
+string Client::acceptResponse()
 {
     try {
         boost::asio::streambuf buf;
@@ -16,19 +16,9 @@ void Client::acceptResponse()
 
         if (response.empty()) {
             std::cerr << WARNING_COLOR "Получены пустые данные!" << RESET_COLOR << std::endl;
-            return;
+            return "empty";
         }
-
-        std::cout << "Получен ответ: " << response << std::endl;
-
-        json received_json = json::parse(response);
-        json_.clear();
-        json_ = received_json;
-        std::cout << "Человек с именем: " << received_json["name"] << " ответил: " << std::endl;
-        std::cout << received_json["message"] << std::endl;
-        response_ = received_json["message"];
-        cout << endl;
-        saveResponse();
+        return response;
     }
     catch (const boost::system::system_error& e) {
         std::cerr << WARNING_COLOR << "Ошибка при чтении ответа от клиента: " << e.what() << RESET_COLOR << std::endl;
