@@ -21,10 +21,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{2c065c61-6be2-416d-bacf-7cd4470f9596}</ProjectGuid>
-    <RootNamespace>topexam</RootNamespace>
+    <ProjectGuid>{a8b2e50f-f258-48b6-ad3e-2ec804962e6d}</ProjectGuid>
+    <RootNamespace>client</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>server</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -105,8 +104,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,23 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp" />
-    <ClCompile Include="FileSystem.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="ListFiles.cpp" />
-    <ClCompile Include="Server.cpp" />
-    <ClCompile Include="top-exam.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Client.h" />
-    <ClInclude Include="FileSystem.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="Libs.h" />
-    <ClInclude Include="ListFiles.h" />
-    <ClInclude Include="Server.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Source.txt" />
+    <ClCompile Include="client.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -8,11 +8,11 @@ void Server::accept_connections(tcp::acceptor& acceptor)
 
         acceptor.accept(socket);
         {
-            // Защищаем доступ к вектору клиентов
             std::lock_guard<std::mutex> lock(client_mutex_);
-            if (clients_.size() < 2) { clients_.emplace_back(std::move(socket));countClient++; }
-            else try { boost::asio::write(socket, boost::asio::buffer("Нет мест для подключения \n"));socket.cancel(); }
+            if (countClient < 2) { clients_.emplace_back(std::move(socket));countClient++; }
+            else try { boost::asio::write(socket, boost::asio::buffer("Нет мест для подключения \n")); socket.cancel(); }
             catch (exception& ex) { cerr << ex.what() << endl; }
+            if (countClient == 2) { break; return; }
         }
         std::cout << endl << SUCCESSFULLY_COLOR << "Новое подключение." << RESET_COLOR << " Всего клиентов : " << RESET_COLOR << clients_.size() << std::endl;
     }
@@ -24,7 +24,7 @@ void Server::start()
 
         std::cout << SUCCESSFULLY_COLOR << "Сервер запущен на порте " << PORT << RESET_COLOR << endl;
         accept_connections(acceptor);
-
+        game();
     }
     catch (std::exception& e) {
         std::cerr << WARNING_COLOR << "Ошибка сервера: " << e.what() << RESET_COLOR << std::endl;
@@ -54,48 +54,77 @@ void Server::sendMessage(Client& client, const string& msg)
     boost::asio::write(client.getSocket(), boost::asio::buffer(msg + "\n"));
 }
 
-string Server::getResponse(Client& client_)
+json Server::getResponse(Client& client_)
 {
     string response = client_.acceptResponse();
-    return response;
-    /*vector<std::thread> threads;
+    json j = json::parse(response);
+    return j;
+    
+}
 
-    for (auto& client : clients_) {
-        if(&client==&client_)
-        {threads.push_back(std::thread(&Client::acceptResponse, &client));}
-    }
-
-    for (auto& t : threads) {
-        if (t.joinable()) {
-            t.join();
-        }
-    }*/
-    /*json j;
-    std::unordered_map<std::string, int> _mostResponse = mostResponse(clients_);
-
-    j["clients"] = json::array();
-    for (auto& client : clients_) {
-        json clientJson = client.getJson();
-        j["clients"].push_back({
-            {"name", clientJson["name"]},
-            {"response", clientJson["message"]}
-            });
-
-    }
-    j["question"] = this->question;
-    j["mostResponse"] = json::array();
-    for (const auto& response : _mostResponse)
+void Server::game()
+{
+    Game game;
+    int queue = 0;
+    if (true)
     {
-        j["mostResponse"].push_back({
-                    {"response", response.first},
-                    {"count", response.second}
-            });
+        json j;
+        j["myMap"] = game.getMap(1, false);
+        j["flag"] = 0;
+        j["enemyMap"] = game.getMap(0, true);
+        j["message"] = "";
+        string js = j.dump();
+
+        sendMessage(clients_[1], js);
     }
-    string str = j.dump(1);
-    FileSystem fs;
-    FileLister fl;
-    vector<string> files = fl.getFiles("general_responses/");
-    fs.openFile("general_responses/" + to_string(files.size()) +".json", "w+");
-    fs.writeFile(str);
-    fs.closeFile();*/
+    while (true)
+    {
+        json j;
+        j["myMap"] = game.getMap(queue, false);
+        j["flag"] = 1;
+        j["enemyMap"] = game.getMap(queue == 0 ? 1 : 0, true);
+        j["message"] = "";
+        string js = j.dump();
+
+        sendMessage(clients_[queue], js);
+        json response = getResponse(clients_[queue]);
+        int x = response["x"];
+        int y = response["y"];
+        bool successfully = game.hit(queue, x, y);
+        j = nullptr;
+        js = "";
+        j["myMap"] = game.getMap(queue, false);
+        j["flag"] = 0;
+        j["enemyMap"] = game.getMap(queue == 0 ? 1 : 0, true);
+        j["message"] = successfully==true ? "Popal!" : "Ne popal!";
+        js = j.dump();
+        sendMessage(clients_[queue], js);
+        if(!successfully) queue = queue == 0 ? 1 : 0;
+        else
+        {
+            j = nullptr;
+            js = "";
+            j["myMap"] = game.getMap(queue == 0 ? 1 : 0, false);
+            j["flag"] = 0;
+            j["enemyMap"] = game.getMap(queue, true);
+            j["message"] = "";
+            js = j.dump();
+            sendMessage(clients_[queue == 0 ? 1 : 0], js);
+        }
+        int winner = game.winner();
+        if (winner != -1)
+        {
+            j = nullptr;
+            j["flag"] = 2;
+            j["message"] = "You win!";
+            js = j.dump();
+            sendMessage(clients_[winner], js);
+            j = nullptr;
+            j["flag"] = 2;
+            j["message"] = "You lost!";
+            js = j.dump();
+            sendMessage(clients_[winner == 0 ? 1 : 0], js);
+            return;
+        }
+    }
 }

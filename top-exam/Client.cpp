@@ -6,18 +6,10 @@ Client::Client(tcp::socket s) : socket_(std::move(s)) { }
 string Client::acceptResponse()
 {
     try {
-        boost::asio::streambuf buf;
+        char data[1024];
 
-        boost::asio::read_until(this->socket_, buf, '\n');
-
-        std::istream input_stream(&buf);
-        std::string response;
-        std::getline(input_stream, response);
-
-        if (response.empty()) {
-            std::cerr << WARNING_COLOR "Получены пустые данные!" << RESET_COLOR << std::endl;
-            return "empty";
-        }
+        size_t length = this->socket_.read_some(boost::asio::buffer(data));
+        string response = string(data, length);
         return response;
     }
     catch (const boost::system::system_error& e) {

@@ -3,6 +3,7 @@
 #include "Client.h"
 #include "FileSystem.h"
 #include "ListFiles.h"
+#include "Game.h"
 
 class Server {
 private:
@@ -16,6 +17,7 @@ public:
     Server() {};
     void start();
     void sendMessageToAll(const std::string& msg);
-    std::string getResponse(Client & client);
+    json getResponse(Client & client);
     void sendMessage(Client& client, const string& msg);
+    void game();
 };
