@@ -9,7 +9,7 @@ class Client
 public:
     Client(tcp::socket s);
     string acceptResponse();
-
+    string getName() const;
 
     tcp::socket& getSocket();
     string getResponse();
@@ -17,6 +17,7 @@ public:
 
     string question;
 private:
+    string name;
     void saveResponse();
     boost::asio::ip::tcp::socket socket_;
     json json_;

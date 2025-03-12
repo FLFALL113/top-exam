@@ -1,9 +1,12 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 #include "Libs.h"
 #include "Client.h"
 #include "FileSystem.h"
 #include "ListFiles.h"
 #include "Game.h"
+#include <chrono>
+#include <ctime>
 
 class Server {
 private:

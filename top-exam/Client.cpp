@@ -36,3 +36,8 @@ void Client::saveResponse()
     fs.closeFile();
 }
 json Client::getJson() { return json_; }
+
+string Client::getName() const
+{
+    return name;
+}

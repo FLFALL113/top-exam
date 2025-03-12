@@ -45,6 +45,7 @@ void Game::placeShip(int player, int x, int y, int size, bool horizontal) {
 }
 
 void Game::generateMap() {
+    srand(time(NULL));
     for(int j = 0;j < 2;j++)
     {
         for (int i = 0; i < SHIP_COUNT; i++) {
@@ -150,4 +151,17 @@ int Game::winner()
         if (ships == 0) return player == 0 ? 1 : 0;
     }
     return -1;
+}
+
+int Game::remainingShips(int player)
+{
+    int count = 0;
+    for (int y = 0; y < 10;y++)
+    {
+        for (int x = 0; x < 10; x++)
+        {
+            if(map[player][y][x] == 2 ||map[player][y][x] == 3) count++;
+        }
+    }
+    return count;
 }

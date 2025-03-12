@@ -124,6 +124,28 @@ void Server::game()
             j["message"] = "You lost!";
             js = j.dump();
             sendMessage(clients_[winner == 0 ? 1 : 0], js);
+            json save;
+            json win;
+            json lost;
+            win["name"] = clients_[winner].getName();
+            win["hits"] = game.remainingShips(winner);
+
+            lost["name"] = clients_[winner == 0 ? 1 : 0].getName();
+            lost["hits"] = game.remainingShips(winner == 0 ? 1 : 0);
+            
+            save["win"] = win;
+            save["lost"] = lost;
+
+            FileSystem fs;
+            auto now = std::chrono::system_clock::now();
+
+            time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+            tm* now_tm = std::localtime(&now_time_t);
+            string path = to_string(now_tm->tm_year) + to_string(now_tm->tm_mon) + to_string(now_tm->tm_wday) + to_string(now_tm->tm_hour) + to_string(now_tm->tm_min) + ".txt";
+            js = save.dump(4);
+            fs.openFile(path,"w+");
+            fs.writeFile(js);
+            fs.closeFile();
             return;
         }
     }

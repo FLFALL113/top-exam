@@ -31,4 +31,5 @@ public:
     json getMap(int player,bool isEnemy);
     bool hit(int fromPlayer, int x, int y);
     int winner();
+    int remainingShips(int player);
 };

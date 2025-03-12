@@ -20,7 +20,7 @@ enum Ships
     dead = 2,
     miss = 3
 };
-void write_to_server(tcp::socket& socket) {
+void write_to_server(tcp::socket& socket,string name) {
     try {
         cout << "Введите координату по X: ";
         int x;
@@ -31,6 +31,7 @@ void write_to_server(tcp::socket& socket) {
         json j;
         j["x"] = x-1;
         j["y"] = y-1;
+        j["name"] = name;
         string message = j.dump();
         boost::asio::write(socket, boost::asio::buffer(message));
     }
@@ -42,6 +43,9 @@ void write_to_server(tcp::socket& socket) {
 void read_from_server(tcp::socket& socket) {
     try {
         char reply[1024];
+        string name;
+        cout << "Введите имя: ";
+        cin >> name;
         while (true) {
             size_t reply_length = socket.read_some(boost::asio::buffer(reply));
             json j;
@@ -106,7 +110,7 @@ void read_from_server(tcp::socket& socket) {
             }
             if (j["flag"] == 1)
             {
-                write_to_server(socket);
+                write_to_server(socket, name);
             }
             else if (j["flag"] == 2)
             if(j["message"] != "" ) cout << j["message"];
@@ -123,7 +127,7 @@ int main() {
     setlocale(LC_ALL, "ru");
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
-
+    
     try {
         boost::asio::io_context io_context;
 
